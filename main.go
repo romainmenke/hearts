@@ -20,14 +20,22 @@ const (
 )
 
 func main() {
+
+	fmt.Print("Starting Hearts")
+
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 		return
 	}
+
+	fmt.Printf("Listening on port : %s" port)
+
 	s := grpc.NewServer()
 	wercker.RegisterNotificationServiceServer(s, &server{})
 	s.Serve(lis)
+
+	fmt.Print("Ready to serve clients")
 
 }
 
