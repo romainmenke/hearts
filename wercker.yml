@@ -1,0 +1,18 @@
+box: golang
+
+build:
+  steps:
+    - setup-go-workspace
+
+    - script:
+        name: go build
+        code: |
+          go build
+    - script:
+        name: go test
+        code: |
+          go test
+  after-steps:
+    - romainmenke/universal-notifier:
+        host: "https://www.google.blah"
+        port: "80"
