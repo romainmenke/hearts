@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/romainmenke/githearts",
+	"ImportPath": "github.com/romainmenke/hearts",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
 	"Deps": [
