@@ -1,1 +1,1 @@
-web: grpc-heroku
+web: hearts
