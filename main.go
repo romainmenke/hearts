@@ -36,7 +36,7 @@ func main() {
 
 	fmt.Println("Loading DB Connection")
 
-	db := fakedb.New(os.Getenv("DB_ROOT"), os.Getenv("GIT_ROOT"))
+	db := fakedb.New("/go/src/app/", os.Getenv("/go/src/app/"))
 	srv.db = db
 
 	wercker.RegisterNotificationServiceServer(s, &srv)
