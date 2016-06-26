@@ -58,7 +58,7 @@ func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*werck
 		return &wercker.WerckerResponse{Success: false}, err
 	}
 
-	err = s.db.SaveSVG(ctx, heart)
+	err = s.db.SaveSVG(ctx, *heart)
 	if err != nil {
 		return &wercker.WerckerResponse{Success: false}, err
 	}
