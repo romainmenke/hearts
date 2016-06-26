@@ -47,7 +47,7 @@ func (db *FakeDB) SaveSVG(ctx context.Context, heart Heart) error {
 	svgString := svg(heart.Count)
 	b := []byte(svgString)
 
-	err := db.Save(ctx, &b, heart.Path(), "hearts.svg")
+	err := db.Save(ctx, &b, heart.Path(), heart.SVGFileName())
 	if err != nil {
 		return span.Error(err)
 	}
