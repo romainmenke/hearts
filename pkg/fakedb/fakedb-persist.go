@@ -12,7 +12,7 @@ import (
 
 func (db *FakeDB) Persist(ctx context.Context) error {
 
-	span, _ := trace.New(ctx, "Persist Database")
+	span, ctx := trace.New(ctx, "Persist Database")
 	defer span.Close()
 
 	err := add()
@@ -62,37 +62,6 @@ func push() error {
 	url := fmt.Sprintf("https://%s:%s@github.com/romainmenke/hearts.git", user, password)
 
 	cmd := exec.Command("git", "push", url)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func setupUser() error {
-	user := "heartsbot"
-
-	user = fmt.Sprintf("'%s'", user)
-
-	cmd := exec.Command("git", "config", "user.name", user)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
-
-}
-
-func setupEmail() error {
-	email := "romainmenke+heartsbot@gmail.com"
-
-	email = fmt.Sprintf("'%s'", email)
-
-	cmd := exec.Command("git", "config", "user.email", email)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
