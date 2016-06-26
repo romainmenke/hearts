@@ -19,6 +19,10 @@ const (
 	port = ":50051"
 )
 
+var (
+	db = fakedb.New("/go/src/app/", "/go/src/app/")
+)
+
 func main() {
 
 	trace.DefaultHandler = dev.NewHandler(nil)
@@ -38,9 +42,6 @@ func main() {
 
 	fmt.Println("Loading DB Connection")
 
-	db := fakedb.New("/go/src/app/", "/go/src/app/")
-	srv.db = db
-
 	wercker.RegisterNotificationServiceServer(s, &srv)
 
 	fmt.Println("Ready to serve clients")
@@ -49,9 +50,7 @@ func main() {
 
 }
 
-type server struct {
-	db *fakedb.FakeDB
-}
+type server struct{}
 
 func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*wercker.WerckerResponse, error) {
 
@@ -60,7 +59,7 @@ func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*werck
 		return &wercker.WerckerResponse{Success: false}, err
 	}
 
-	err = s.db.SaveSVG(ctx, *heart)
+	err = db.SaveSVG(ctx, *heart)
 	if err != nil {
 		return &wercker.WerckerResponse{Success: false}, err
 	}
@@ -70,7 +69,7 @@ func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*werck
 		return &wercker.WerckerResponse{Success: false}, err
 	}
 
-	err = s.db.Persist(ctx)
+	err = db.Persist(ctx)
 	if err != nil {
 		return &wercker.WerckerResponse{Success: false}, err
 	}
@@ -85,7 +84,7 @@ func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*f
 
 	var heart *fakedb.Heart
 
-	heart, err := s.db.LoadHeart(ctx, message.Git.Domain, message.Git.Owner, message.Git.Repository)
+	heart, err := db.LoadHeart(ctx, message.Git.Domain, message.Git.Owner, message.Git.Repository)
 	if err != nil || heart == nil {
 		span.Error(err)
 
@@ -110,7 +109,7 @@ func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*f
 
 	heart.LastBuild = message.Result.Result
 
-	err = s.db.SaveObject(ctx, heart)
+	err = db.SaveObject(ctx, heart)
 	if err != nil {
 		return nil, span.Error(err)
 	}
@@ -132,7 +131,7 @@ func (s *server) newHeart(ctx context.Context, message *wercker.WerckerMessage) 
 		Repo:      message.Git.Repository,
 	}
 
-	err := s.db.SaveObject(ctx, heart)
+	err := db.SaveObject(ctx, heart)
 	if err != nil {
 		return nil, span.Error(err)
 	}
@@ -147,7 +146,7 @@ func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, hear
 
 	var user *fakedb.User
 
-	user, err := s.db.LoadUser(ctx, message.Git.Domain, message.Build.User)
+	user, err := db.LoadUser(ctx, message.Git.Domain, message.Build.User)
 	if err != nil {
 		span.Error(err)
 
@@ -171,7 +170,7 @@ func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, hear
 
 	heart.LastBuild = message.Result.Result
 
-	err = s.db.SaveObject(ctx, heart)
+	err = db.SaveObject(ctx, heart)
 	if err != nil {
 		return span.Error(err)
 	}
@@ -199,7 +198,7 @@ func (s *server) newUser(ctx context.Context, message *wercker.WerckerMessage) e
 		user.Streak++
 	}
 
-	err := s.db.SaveObject(ctx, user)
+	err := db.SaveObject(ctx, user)
 	if err != nil {
 		return span.Error(err)
 	}
