@@ -21,12 +21,22 @@ const (
 )
 
 var (
-	db = fakedb.New("/go/src/app/", "/go/src/app/")
+	db *fakedb.FakeDB
 )
 
 func main() {
 
 	trace.DefaultHandler = dev.NewHandler(nil)
+
+	span, _ := trace.New(context.Background(), "Starting Server")
+	defer span.Close()
+
+	db = fakedb.New("/go/src/app/", "/go/src/app/")
+
+	if db == nil {
+		span.Error("nil db")
+		return
+	}
 
 	fmt.Println("Starting Hearts")
 
