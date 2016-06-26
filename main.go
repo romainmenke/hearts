@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -36,13 +37,11 @@ func main() {
 	}
 
 	fmt.Printf("Listening on port : %s", port)
+	fmt.Println("")
 
 	s := grpc.NewServer()
-	srv := server{}
 
-	fmt.Println("Loading DB Connection")
-
-	wercker.RegisterNotificationServiceServer(s, &srv)
+	wercker.RegisterNotificationServiceServer(s, &server{})
 
 	fmt.Println("Ready to serve clients")
 
@@ -53,6 +52,14 @@ func main() {
 type server struct{}
 
 func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*wercker.WerckerResponse, error) {
+
+	if s == nil {
+		return nil, errors.New("fubar")
+	}
+
+	if in == nil {
+		return &wercker.WerckerResponse{Success: false}, errors.New("nil message")
+	}
 
 	heart, err := s.heart(ctx, in)
 	if err != nil {
