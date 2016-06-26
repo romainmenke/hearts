@@ -45,7 +45,7 @@ func add() error {
 
 func commit() error {
 
-	cmd := exec.Command("git", "commit", "-m", "'entry'")
+	cmd := exec.Command("git", "commit", "-m", "entry")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
