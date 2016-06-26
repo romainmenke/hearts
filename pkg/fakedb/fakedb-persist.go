@@ -15,12 +15,7 @@ func (db *FakeDB) Persist(ctx context.Context) error {
 	span, _ := trace.New(ctx, "Persist Database")
 	defer span.Close()
 
-	err := cd(db.gitRoot)
-	if err != nil {
-		return span.Error(err)
-	}
-
-	err = add()
+	err := add()
 	if err != nil {
 		return span.Error(err)
 	}
@@ -33,18 +28,6 @@ func (db *FakeDB) Persist(ctx context.Context) error {
 		return span.Error(err)
 	}
 
-	return nil
-}
-
-func cd(path string) error {
-
-	cmd := exec.Command("cd", path)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
