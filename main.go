@@ -1,16 +1,16 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
-	"os/exec"
+
+	"limbo.services/trace"
 
 	"golang.org/x/net/context"
 
+	"github.com/romainmenke/hearts/pkg/fakedb"
 	"github.com/romainmenke/universal-notifier/pkg/wercker"
 	"google.golang.org/grpc"
 )
@@ -32,7 +32,14 @@ func main() {
 	fmt.Printf("Listening on port : %s", port)
 
 	s := grpc.NewServer()
-	wercker.RegisterNotificationServiceServer(s, &server{})
+	srv := server{}
+
+	fmt.Println("Loading DB Connection")
+
+	db := fakedb.New(os.Getenv("DB_ROOT"), os.Getenv("GIT_ROOT"))
+	srv.db = db
+
+	wercker.RegisterNotificationServiceServer(s, &srv)
 
 	fmt.Println("Ready to serve clients")
 
@@ -40,175 +47,160 @@ func main() {
 
 }
 
-// server is used to implement helloworld.GreeterServer.
-type server struct{}
+type server struct {
+	db *fakedb.FakeDB
+}
 
 func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*wercker.WerckerResponse, error) {
-	fmt.Print(in)
+
+	heart, err := s.heart(ctx, in)
+	if err != nil {
+		return &wercker.WerckerResponse{Success: false}, err
+	}
+
+	err = s.db.SaveSVG(ctx, heart)
+	if err != nil {
+		return &wercker.WerckerResponse{Success: false}, err
+	}
+
+	err = s.user(ctx, in, heart)
+	if err != nil {
+		return &wercker.WerckerResponse{Success: false}, err
+	}
+
+	err = s.db.Persist(ctx)
+	if err != nil {
+		return &wercker.WerckerResponse{Success: false}, err
+	}
+
 	return &wercker.WerckerResponse{Success: true}, nil
 }
 
-func setupUser() error {
-	user := "heartsbot"
+func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*fakedb.Heart, error) {
 
-	user = fmt.Sprintf("'%s'", user)
+	span, ctx := trace.New(ctx, "Update Heart")
+	defer span.Close()
 
-	cmd := exec.Command("git", "config", "user.name", user)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
+	var heart *fakedb.Heart
+
+	heart, err := s.db.LoadHeart(ctx, message.Git.Domain, message.Git.Owner, message.Git.Repository)
 	if err != nil {
-		return err
-	}
-	fmt.Print(out.String())
-	return nil
+		span.Error(err)
 
+		newHeart, newErr := s.newHeart(ctx, message)
+		if newErr != nil {
+			return nil, span.Error(newErr)
+		}
+		return newHeart, nil
+	}
+
+	if message.Result.Result == true && heart.LastBuild == false {
+		heart.Count++
+		if heart.Count > 3 {
+			heart.Count = 3
+		}
+	} else if message.Result.Result == false {
+		heart.Count--
+		if heart.Count < 0 {
+			heart.Count = 0
+		}
+	}
+
+	heart.LastBuild = message.Result.Result
+
+	err = s.db.SaveObject(ctx, heart)
+	if err != nil {
+		return nil, span.Error(err)
+	}
+
+	return heart, nil
 }
 
-func setupEmail() error {
-	email := "romainmenke+heartsbot@gmail.com"
+func (s *server) newHeart(ctx context.Context, message *wercker.WerckerMessage) (*fakedb.Heart, error) {
 
-	email = fmt.Sprintf("'%s'", email)
+	span, ctx := trace.New(ctx, "New Heart")
+	defer span.Close()
 
-	cmd := exec.Command("git", "config", "user.email", email)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return err
+	pass := message.Result.Result
+	heart := &fakedb.Heart{
+		Count:     3,
+		LastBuild: pass,
+		Domain:    message.Git.Domain,
+		Owner:     message.Git.Owner,
+		Repo:      message.Git.Repository,
 	}
-	fmt.Print(out.String())
-	return nil
+
+	err := s.db.SaveObject(ctx, heart)
+	if err != nil {
+		return nil, span.Error(err)
+	}
+
+	return heart, nil
 }
 
-func add() error {
+func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, heart *fakedb.Heart) error {
 
-	cmd := exec.Command("git", "add", ".")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
+	span, ctx := trace.New(ctx, "Update User")
+	defer span.Close()
+
+	var user *fakedb.User
+
+	user, err := s.db.LoadUser(ctx, message.Git.Domain, message.Build.User)
 	if err != nil {
-		return err
-	}
-	fmt.Print(out.String())
-	return nil
-}
+		span.Error(err)
 
-func commit() error {
-
-	cmd := exec.Command("git", "commit", "-m", "'entry'")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	fmt.Print(out.String())
-	return nil
-}
-
-func push() error {
-
-	user := os.Getenv("USER")
-	password := os.Getenv("PASS")
-	url := fmt.Sprintf("https://%s:%s@github.com/romainmenke/githeartsdb.git", user, password)
-
-	cmd := exec.Command("git", "push", url)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	fmt.Print(out.String())
-	return nil
-}
-
-func write(path string) error {
-
-	dirPath := fmt.Sprintf("db/%s", path)
-	filePath := fmt.Sprintf("db/%sshield.svg", path)
-
-	err := createDir(dirPath)
-	if err != nil {
-		return err
+		err = s.newUser(ctx, message)
+		if err != nil {
+			return span.Error(err)
+		}
+		return nil
 	}
 
-	err = removeFile(filePath)
-	if err != nil {
-		return err
+	if message.Result.Result == true {
+		user.Exp++
+		user.Streak++
+	} else {
+		user.Streak = 0
 	}
 
-	err = createFile(filePath)
-	if err != nil {
-		return err
+	if heart.Count == 0 {
+		user.Deaths++
 	}
 
-	d1 := []byte(svg(2))
-	err = ioutil.WriteFile(filePath, d1, 0644)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+	heart.LastBuild = message.Result.Result
 
-func createDir(path string) error {
-	cmd := exec.Command("mkdir", "-p", path)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
+	err = s.db.SaveObject(ctx, heart)
 	if err != nil {
-		return err
+		return span.Error(err)
 	}
 
 	return nil
 }
 
-func createFile(path string) error {
-	cmd := exec.Command("touch", path)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
+func (s *server) newUser(ctx context.Context, message *wercker.WerckerMessage) error {
+
+	span, ctx := trace.New(ctx, "New Heart")
+	defer span.Close()
+
+	pass := message.Result.Result
+	user := &fakedb.User{
+		Domain: message.Git.Domain,
+		Name:   message.Build.User,
+		Level:  0,
+		Exp:    0,
+		Streak: 0,
+		Deaths: 0,
+	}
+
+	if pass {
+		user.Exp++
+		user.Streak++
+	}
+
+	err := s.db.SaveObject(ctx, user)
 	if err != nil {
-		return err
+		return span.Error(err)
 	}
 
 	return nil
-}
-
-func removeFile(path string) error {
-	cmd := exec.Command("rm", "-f", path)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func svg(hearts int) string {
-	switch hearts {
-	case 1:
-		return svgOne()
-	case 2:
-		return svgTwo()
-	case 3:
-		return svgThree()
-	default:
-		return svgThree()
-	}
-}
-
-func svgOne() string {
-	return "<svg width=\"30\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ --><g><title>background</title><rect fill=\"#fff\" id=\"canvas_background\" height=\"22\" width=\"32\" y=\"-1\" x=\"-1\"/><g display=\"none\" overflow=\"visible\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\" id=\"canvasGrid\"><rect fill=\"url(#gridpattern)\" stroke-width=\"0\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\"/></g></g><g><title>Layer 1</title><rect id=\"svg_1\" height=\"147\" width=\"432\" y=\"96\" x=\"77\" stroke-width=\"1.5\" stroke=\"#000\" fill=\"#fff\"/><text xml:space=\"preserve\" text-anchor=\"start\" font-family=\"Helvetica, Arial, sans-serif\" font-size=\"24\" id=\"svg_2\" y=\"188\" x=\"266.5\" stroke-width=\"0\" stroke=\"#000\" fill=\"#000000\">♥♥♥</text><text transform=\"matrix(1 0 0 1 0 0)\" stroke=\"#000\" xml:space=\"preserve\" text-anchor=\"start\" font-family=\"Helvetica, Arial, sans-serif\" font-size=\"15\" id=\"svg_3\" y=\"15.16415\" x=\"10.56461\" stroke-width=\"0\" fill=\"#ff002e\">♥</text></g></svg>"
-}
-
-func svgTwo() string {
-	return "<svg width=\"30\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ --><g><title>background</title><rect fill=\"#fff\" id=\"canvas_background\" height=\"22\" width=\"32\" y=\"-1\" x=\"-1\"/><g display=\"none\" overflow=\"visible\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\" id=\"canvasGrid\"><rect fill=\"url(#gridpattern)\" stroke-width=\"0\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\"/></g></g><g><title>Layer 1</title><rect id=\"svg_1\" height=\"147\" width=\"432\" y=\"96\" x=\"77\" stroke-width=\"1.5\" stroke=\"#000\" fill=\"#fff\"/><text xml:space=\"preserve\" text-anchor=\"start\" font-family=\"Helvetica, Arial, sans-serif\" font-size=\"24\" id=\"svg_2\" y=\"188\" x=\"266.5\" stroke-width=\"0\" stroke=\"#000\" fill=\"#000000\">♥♥♥</text><text transform=\"matrix(1 0 0 1 0 0)\" stroke=\"#000\" xml:space=\"preserve\" text-anchor=\"start\" font-family=\"Helvetica, Arial, sans-serif\" font-size=\"15\" id=\"svg_3\" y=\"15.16415\" x=\"6.12711\" stroke-width=\"0\" fill=\"#ff002e\">♥♥</text></g></svg>"
-}
-
-func svgThree() string {
-	return "<svg width=\"30\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ --><g><title>background</title><rect fill=\"#fff\" id=\"canvas_background\" height=\"22\" width=\"32\" y=\"-1\" x=\"-1\"/><g display=\"none\" overflow=\"visible\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\" id=\"canvasGrid\"><rect fill=\"url(#gridpattern)\" stroke-width=\"0\" y=\"0\" x=\"0\" height=\"100%\" width=\"100%\"/></g></g><g><title>Layer 1</title><rect id=\"svg_1\" height=\"147\" width=\"432\" y=\"96\" x=\"77\" stroke-width=\"1.5\" stroke=\"#000\" fill=\"#fff\"/><text xml:space=\"preserve\" text-anchor=\"start\" font-family=\"Helvetica, Arial, sans-serif\" font-size=\"24\" id=\"svg_2\" y=\"188\" x=\"266.5\" stroke-width=\"0\" stroke=\"#000\" fill=\"#000000\">♥♥♥</text><text stroke=\"#000\" xml:space=\"preserve\" text-anchor=\"start\" font-family=\"Helvetica, Arial, sans-serif\" font-size=\"15\" id=\"svg_3\" y=\"15.16579\" x=\"1.69757\" stroke-width=\"0\" fill=\"#ff002e\">♥♥♥</text></g></svg>"
 }
