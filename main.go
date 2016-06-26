@@ -89,17 +89,15 @@ func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*f
 	span, ctx := trace.New(ctx, "Update Heart")
 	defer span.Close()
 
-	var heart *fakedb.Heart
-
 	heart, err := db.LoadHeart(ctx, message.Git.Domain, message.Git.Owner, message.Git.Repository)
 	if err != nil || heart == nil {
 		span.Error(err)
 
-		newH, newErr := s.newHeart(ctx, message)
-		if newErr != nil {
-			return nil, span.Error(newErr)
+		heart, err = s.newHeart(ctx, message)
+		if err != nil {
+			return nil, span.Error(err)
 		}
-		return newH, nil
+		return heart, nil
 	}
 
 	if message.Result.Result == true && heart.LastBuild == false {
