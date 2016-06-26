@@ -28,15 +28,7 @@ func main() {
 
 	trace.DefaultHandler = dev.NewHandler(nil)
 
-	span, _ := trace.New(context.Background(), "Starting Server")
-	defer span.Close()
-
 	db = fakedb.New("/go/src/app/", "/go/src/app/")
-
-	if db == nil {
-		span.Error("nil db")
-		return
-	}
 
 	fmt.Println("Starting Hearts")
 
@@ -71,6 +63,11 @@ func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*werck
 		return &wercker.WerckerResponse{Success: false}, errors.New("nil message")
 	}
 
+	if in != nil {
+		fmt.Println(*in)
+		return &wercker.WerckerResponse{Success: false}, nil
+	}
+
 	heart, err := s.heart(ctx, in)
 	if err != nil {
 		return &wercker.WerckerResponse{Success: false}, err
@@ -96,12 +93,16 @@ func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*werck
 
 func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*fakedb.Heart, error) {
 
+	span, ctx := trace.New(ctx, "Update Heart")
+	defer span.Close()
+
 	heart, err := db.LoadHeart(ctx, message.Git.Domain, message.Git.Owner, message.Git.Repository)
 	if err != nil || heart == nil {
+		span.Error(err)
 
 		heart, err = s.newHeart(ctx, message)
 		if err != nil {
-			return nil, err
+			return nil, span.Error(err)
 		}
 		return heart, nil
 	}
@@ -122,13 +123,16 @@ func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*f
 
 	err = db.SaveObject(ctx, heart)
 	if err != nil {
-		return nil, err
+		return nil, span.Error(err)
 	}
 
 	return heart, nil
 }
 
 func (s *server) newHeart(ctx context.Context, message *wercker.WerckerMessage) (*fakedb.Heart, error) {
+
+	span, ctx := trace.New(ctx, "New Heart")
+	defer span.Close()
 
 	pass := message.Result.Result
 	heart := &fakedb.Heart{
@@ -141,7 +145,7 @@ func (s *server) newHeart(ctx context.Context, message *wercker.WerckerMessage) 
 
 	err := db.SaveObject(ctx, heart)
 	if err != nil {
-		return nil, err
+		return nil, span.Error(err)
 	}
 
 	return heart, nil
@@ -149,14 +153,18 @@ func (s *server) newHeart(ctx context.Context, message *wercker.WerckerMessage) 
 
 func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, heart *fakedb.Heart) error {
 
+	span, ctx := trace.New(ctx, "Update User")
+	defer span.Close()
+
 	var user *fakedb.User
 
 	user, err := db.LoadUser(ctx, message.Git.Domain, message.Build.User)
 	if err != nil {
+		span.Error(err)
 
 		err = s.newUser(ctx, message)
 		if err != nil {
-			return err
+			return span.Error(err)
 		}
 		return nil
 	}
@@ -176,13 +184,16 @@ func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, hear
 
 	err = db.SaveObject(ctx, heart)
 	if err != nil {
-		return err
+		return span.Error(err)
 	}
 
 	return nil
 }
 
 func (s *server) newUser(ctx context.Context, message *wercker.WerckerMessage) error {
+
+	span, ctx := trace.New(ctx, "New User")
+	defer span.Close()
 
 	pass := message.Result.Result
 	user := &fakedb.User{
@@ -201,7 +212,7 @@ func (s *server) newUser(ctx context.Context, message *wercker.WerckerMessage) e
 
 	err := db.SaveObject(ctx, user)
 	if err != nil {
-		return err
+		return span.Error(err)
 	}
 
 	return nil
