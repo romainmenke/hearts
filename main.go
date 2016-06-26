@@ -147,8 +147,10 @@ func (s *server) newHeart(ctx context.Context, message *wercker.WerckerMessage) 
 }
 
 func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, heart *fakedb.Heart) error {
-
-	span, ctx := trace.New(ctx, "Update User")
+	userLog := fmt.Sprintf("Update User : %s", message.Build.User)
+	ownerLog := fmt.Sprintf("Update User : %s", message.Git.Owner)
+	_ = ownerLog
+	span, ctx := trace.New(ctx, userLog)
 	defer span.Close()
 
 	var user *fakedb.User
