@@ -58,6 +58,8 @@ func commit() error {
 func push() error {
 
 	user := os.Getenv("USER")
+	fmt.Println("USER")
+	fmt.Println(user)
 	password := os.Getenv("PASS")
 	url := fmt.Sprintf("https://%s:%s@github.com/romainmenke/hearts.git", user, password)
 
