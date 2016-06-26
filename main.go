@@ -148,15 +148,11 @@ func (s *server) newHeart(ctx context.Context, message *wercker.WerckerMessage) 
 
 func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, heart *fakedb.Heart) error {
 	userLog := fmt.Sprintf("Update User : %s", message.Build.User)
-	ownerLog := fmt.Sprintf("Update User : %s", message.Git.Owner)
-	_ = ownerLog
 	span, ctx := trace.New(ctx, userLog)
 	defer span.Close()
 
-	var user *fakedb.User
-
 	user, err := db.LoadUser(ctx, message.Git.Domain, message.Build.User)
-	if err != nil {
+	if err != nil || user == nil {
 		span.Error(err)
 
 		err = s.newUser(ctx, message)
@@ -177,9 +173,7 @@ func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, hear
 		user.Deaths++
 	}
 
-	heart.LastBuild = message.Result.Result
-
-	err = db.SaveObject(ctx, heart)
+	err = db.SaveObject(ctx, user)
 	if err != nil {
 		return span.Error(err)
 	}
