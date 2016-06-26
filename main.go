@@ -90,11 +90,11 @@ func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*f
 	if err != nil || heart == nil {
 		span.Error(err)
 
-		newHeart, newErr := s.newHeart(ctx, message)
+		newH, newErr := s.newHeart(ctx, message)
 		if newErr != nil {
 			return nil, span.Error(newErr)
 		}
-		return newHeart, nil
+		return newH, nil
 	}
 
 	if message.Result.Result == true && heart.LastBuild == false {
