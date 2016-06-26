@@ -28,7 +28,7 @@ func main() {
 
 	trace.DefaultHandler = dev.NewHandler(nil)
 
-	db = fakedb.New("/go/src/app/", "/go/src/app/")
+	db = fakedb.New("/go/src/app/db/", "/go/src/app/db/")
 
 	fmt.Println("Starting Hearts")
 
