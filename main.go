@@ -87,7 +87,7 @@ func (s *server) heart(ctx context.Context, message *wercker.WerckerMessage) (*f
 	var heart *fakedb.Heart
 
 	heart, err := s.db.LoadHeart(ctx, message.Git.Domain, message.Git.Owner, message.Git.Repository)
-	if err != nil {
+	if err != nil || heart == nil {
 		span.Error(err)
 
 		newHeart, newErr := s.newHeart(ctx, message)
@@ -182,7 +182,7 @@ func (s *server) user(ctx context.Context, message *wercker.WerckerMessage, hear
 
 func (s *server) newUser(ctx context.Context, message *wercker.WerckerMessage) error {
 
-	span, ctx := trace.New(ctx, "New Heart")
+	span, ctx := trace.New(ctx, "New User")
 	defer span.Close()
 
 	pass := message.Result.Result
