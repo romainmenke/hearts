@@ -59,13 +59,8 @@ func (s *server) Notify(ctx context.Context, in *wercker.WerckerMessage) (*werck
 		return nil, errors.New("fubar")
 	}
 
-	if in == nil {
+	if in == nil || in.Git == nil || in.Build == nil {
 		return &wercker.WerckerResponse{Success: false}, errors.New("nil message")
-	}
-
-	if in != nil {
-		fmt.Println(*in)
-		return &wercker.WerckerResponse{Success: false}, nil
 	}
 
 	heart, err := s.heart(ctx, in)
