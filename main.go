@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"limbo.services/trace"
+	"limbo.services/trace/dev"
 
 	"golang.org/x/net/context"
 
@@ -20,6 +21,8 @@ const (
 )
 
 func main() {
+
+	trace.DefaultHandler = dev.NewHandler(nil)
 
 	fmt.Println("Starting Hearts")
 

@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	// "limbo.services/trace/dev"
+	"limbo.services/trace"
+	"limbo.services/trace/dev"
 
 	"golang.org/x/net/context"
 )
 
 func TestWriteHeart(t *testing.T) {
 
-	// trace.DefaultHandler = dev.NewHandler(nil)
+	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
 	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
@@ -33,7 +34,7 @@ func TestWriteHeart(t *testing.T) {
 
 func TestWriteSVG(t *testing.T) {
 
-	// trace.DefaultHandler = dev.NewHandler(nil)
+	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
 	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
@@ -55,7 +56,7 @@ func TestWriteSVG(t *testing.T) {
 
 func TestReadHeart(t *testing.T) {
 
-	// trace.DefaultHandler = dev.NewHandler(nil)
+	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
 	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
@@ -82,7 +83,7 @@ func TestReadHeart(t *testing.T) {
 
 func TestReadNonHeart(t *testing.T) {
 
-	// trace.DefaultHandler = dev.NewHandler(nil)
+	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
 	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
@@ -100,7 +101,7 @@ func TestReadNonHeart(t *testing.T) {
 
 func TestWriteUser(t *testing.T) {
 
-	// trace.DefaultHandler = dev.NewHandler(nil)
+	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
 	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
@@ -123,7 +124,7 @@ func TestWriteUser(t *testing.T) {
 
 func TestReadUser(t *testing.T) {
 
-	// trace.DefaultHandler = dev.NewHandler(nil)
+	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
 	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
@@ -151,7 +152,7 @@ func TestReadUser(t *testing.T) {
 
 func TestReadNonUser(t *testing.T) {
 
-	// trace.DefaultHandler = dev.NewHandler(nil)
+	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
 	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
