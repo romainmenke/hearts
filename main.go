@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 
 	"limbo.services/trace"
 	"limbo.services/trace/dev"
@@ -39,7 +38,7 @@ func main() {
 
 	fmt.Println("Loading DB Connection")
 
-	db := fakedb.New("/go/src/app/", os.Getenv("/go/src/app/"))
+	db := fakedb.New("/go/src/app/", "/go/src/app/")
 	srv.db = db
 
 	wercker.RegisterNotificationServiceServer(s, &srv)
