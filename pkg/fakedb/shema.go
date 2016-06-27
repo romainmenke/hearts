@@ -43,6 +43,10 @@ func (h *Heart) Bytes() (*[]byte, error) {
 	return &b, nil
 }
 
+func (h *Heart) SVG() string {
+	return svg(h.Count)
+}
+
 type User struct {
 	Domain string
 	Name   string
