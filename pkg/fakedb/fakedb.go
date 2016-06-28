@@ -90,7 +90,7 @@ func (db *FakeDB) LoadHeart(ctx context.Context, domain string, owner string, re
 
 	heart := Heart{Domain: domain, Owner: owner, Repo: repo}
 	b, err := db.Load(ctx, heart.Path(), heart.Filename())
-	if err != nil {
+	if err != nil || b == nil {
 		return nil, span.Error(err)
 	}
 
@@ -109,7 +109,7 @@ func (db *FakeDB) LoadUser(ctx context.Context, domain string, name string) (*Us
 
 	user := User{Domain: domain, Name: name}
 	b, err := db.Load(ctx, user.Path(), user.Filename())
-	if err != nil {
+	if err != nil || b == nil {
 		return nil, span.Error(err)
 	}
 

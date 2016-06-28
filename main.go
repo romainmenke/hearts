@@ -29,9 +29,9 @@ var (
 
 func main() {
 
-	serveR()
+	go serveH()
 
-	serveH()
+	serveR()
 
 }
 
@@ -223,19 +223,13 @@ func (s *server) newUser(ctx context.Context, message *wercker.WerckerMessage) e
 func serveH() {
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", HomeHandler)
-	router.HandleFunc("/heart/{domain}/{user}/{repo}.json", GetUserJSON)
-	router.HandleFunc("/heart/{domain}/{user}/{repo}.svg", GetUserSVG)
-	router.HandleFunc("/user/{domain}/{user}.json", GetHeartJSON)
-	router.HandleFunc("/user/{domain}/{user}.svg", GetHeartSVG)
+	router.HandleFunc("/heart/{domain}/{user}/{repo}.json", GetHeartJSON)
+	router.HandleFunc("/heart/{domain}/{user}/{repo}.svg", GetHeartSVG)
+	router.HandleFunc("/user/{domain}/{user}.json", GetUserJSON)
+	router.HandleFunc("/user/{domain}/{user}.svg", GetUserSVG)
 
 	http.ListenAndServe(":8080", router)
 
-}
-
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Print("request")
-	fmt.Fprint(w, "Home")
 }
 
 func GetUserJSON(w http.ResponseWriter, r *http.Request) {
@@ -244,15 +238,15 @@ func GetUserJSON(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	domain := vars["domain"]
-	name := vars["name"]
+	name := vars["user"]
 
 	user, err := db.LoadUser(ctx, domain, name)
-	if err != nil {
+	if err != nil || user == nil {
 		resp := make(map[string]string)
 		resp["message"] = "unknown user"
 		json.NewEncoder(w).Encode(resp)
 	}
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(*user)
 }
 
 func GetUserSVG(w http.ResponseWriter, r *http.Request) {
@@ -271,12 +265,12 @@ func GetHeartJSON(w http.ResponseWriter, r *http.Request) {
 	repo := vars["repo"]
 
 	heart, err := db.LoadHeart(ctx, domain, user, repo)
-	if err != nil {
+	if err != nil || heart == nil {
 		resp := make(map[string]string)
 		resp["message"] = "unknown repository"
 		json.NewEncoder(w).Encode(resp)
 	}
-	json.NewEncoder(w).Encode(heart)
+	json.NewEncoder(w).Encode(*heart)
 }
 
 func GetHeartSVG(w http.ResponseWriter, r *http.Request) {
@@ -303,7 +297,7 @@ func GetHeartSVG(w http.ResponseWriter, r *http.Request) {
 
 func setResponseHeaderSVG(w http.ResponseWriter) {
 
-	w.Header().Add("Content-Type", "image/svg")
+	w.Header().Add("Content-Type", "image/svg+xml")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Expose-Headers", "Content-Type, Cache-Control, Expires, Etag, Last-Modified")
 	w.Header().Add("Cache-Control", "no-cache")
