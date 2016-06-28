@@ -26,6 +26,14 @@ var (
 
 func main() {
 
+	go serveRPC()
+
+	go serveHTTP()
+
+}
+
+func serveRPC() {
+
 	trace.DefaultHandler = dev.NewHandler(nil)
 
 	db = fakedb.New("/go/src/app/db/", "/go/src/app/db/")

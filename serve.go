@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func serve() {
+func serveHTTP() {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/heart/{domain}/{user}/{repo}.json", GetUserJSON)
