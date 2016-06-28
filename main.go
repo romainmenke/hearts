@@ -223,6 +223,7 @@ func (s *server) newUser(ctx context.Context, message *wercker.WerckerMessage) e
 func serveH() {
 
 	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", HomeHandler)
 	router.HandleFunc("/heart/{domain}/{user}/{repo}.json", GetUserJSON)
 	router.HandleFunc("/heart/{domain}/{user}/{repo}.svg", GetUserSVG)
 	router.HandleFunc("/user/{domain}/{user}.json", GetHeartJSON)
@@ -230,6 +231,11 @@ func serveH() {
 
 	http.ListenAndServe(":8080", router)
 
+}
+
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("request")
+	fmt.Fprint(w, "Home")
 }
 
 func GetUserJSON(w http.ResponseWriter, r *http.Request) {
