@@ -58,7 +58,7 @@ func serveR() {
 
 	fmt.Println("Ready to serve clients")
 
-	go s.Serve(lis)
+	s.Serve(lis)
 
 }
 
@@ -228,7 +228,7 @@ func serveH() {
 	router.HandleFunc("/user/{domain}/{user}.json", GetHeartJSON)
 	router.HandleFunc("/user/{domain}/{user}.svg", GetHeartSVG)
 
-	go http.ListenAndServe(":8080", router)
+	http.ListenAndServe(":8080", router)
 
 }
 
