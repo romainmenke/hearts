@@ -299,7 +299,9 @@ func GetHeartSVG(w http.ResponseWriter, r *http.Request) {
 func setResponseHeaderSVG(w http.ResponseWriter) {
 
 	cacheSince := time.Now().Format(http.TimeFormat)
-	cacheUntil := time.Now().AddDate(60, 0, 0).Format(http.TimeFormat)
+	delay := time.Duration(30) * time.Second
+
+	cacheUntil := time.Now().Add(delay).Format(http.TimeFormat)
 
 	w.Header().Add("Content-Type", "image/svg+xml")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
