@@ -12,11 +12,12 @@ type FakeSheme interface {
 }
 
 type Heart struct {
-	Count     int
-	LastBuild bool
-	Owner     string
-	Domain    string
-	Repo      string
+	Count       int
+	LastBuild   bool
+	LastBuilder *User
+	Owner       string
+	Domain      string
+	Repo        string
 }
 
 func (h *Heart) Path() string {
@@ -54,6 +55,11 @@ type User struct {
 	Exp    int
 	Streak int
 	Deaths int
+	Badges []Badge
+}
+
+func (u *User) FullName() string {
+	return fmt.Sprintf("%s/%s", u.Domain, u.Name)
 }
 
 func (u *User) Path() string {
@@ -73,3 +79,11 @@ func (u *User) Bytes() (*[]byte, error) {
 	}
 	return &b, nil
 }
+
+type Badge struct {
+	Class    int
+	Name     string
+	Progress int
+}
+
+//Int(sqrt(Double(xp) * 0.2345))

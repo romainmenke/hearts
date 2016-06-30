@@ -12,7 +12,7 @@ import (
 
 func (db *FakeDB) Persist(ctx context.Context) error {
 
-	span, ctx := trace.New(ctx, "Persist Database")
+	span, ctx := trace.New(ctx, "fakedb.persist")
 	defer span.Close()
 
 	err := add()
@@ -28,6 +28,32 @@ func (db *FakeDB) Persist(ctx context.Context) error {
 		return span.Error(err)
 	}
 
+	return nil
+}
+
+func (db *FakeDB) LoadGit(ctx context.Context) error {
+
+	span, ctx := trace.New(ctx, "fakedb.load")
+	defer span.Close()
+
+	err := pull()
+	if err != nil {
+		return span.Error(err)
+	}
+
+	return nil
+
+}
+
+func pull() error {
+
+	cmd := exec.Command("git", "pull")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

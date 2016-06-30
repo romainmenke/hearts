@@ -22,7 +22,7 @@ func New(dbRoot string, gitRoot string) *FakeDB {
 
 func (db *FakeDB) SaveObject(ctx context.Context, object FakeSheme) error {
 
-	span, ctx := trace.New(ctx, "New Save Object Operation")
+	span, ctx := trace.New(ctx, "fakedb.saveObject")
 	defer span.Close()
 
 	b, err := object.Bytes()
@@ -39,7 +39,7 @@ func (db *FakeDB) SaveObject(ctx context.Context, object FakeSheme) error {
 
 func (db *FakeDB) SaveSVG(ctx context.Context, heart Heart) error {
 
-	span, ctx := trace.New(ctx, "New Save SVG Operation")
+	span, ctx := trace.New(ctx, "fakedb.saveSVG")
 	defer span.Close()
 
 	svgString := svg(heart.Count)
@@ -54,7 +54,7 @@ func (db *FakeDB) SaveSVG(ctx context.Context, heart Heart) error {
 
 func (db *FakeDB) Save(ctx context.Context, data *[]byte, dir string, filename string) error {
 
-	span, ctx := trace.New(ctx, "New Save Operation")
+	span, ctx := trace.New(ctx, "fakedb.saveBytes")
 	defer span.Close()
 
 	dirPath := fmt.Sprint(db.dbRoot, dir)
@@ -85,7 +85,7 @@ func (db *FakeDB) Save(ctx context.Context, data *[]byte, dir string, filename s
 
 func (db *FakeDB) LoadHeart(ctx context.Context, domain string, owner string, repo string) (*Heart, error) {
 
-	span, ctx := trace.New(ctx, "New Load Heart Operation")
+	span, ctx := trace.New(ctx, "fakedb.loadHeart")
 	defer span.Close()
 
 	heart := Heart{Domain: domain, Owner: owner, Repo: repo}
@@ -104,7 +104,7 @@ func (db *FakeDB) LoadHeart(ctx context.Context, domain string, owner string, re
 
 func (db *FakeDB) LoadUser(ctx context.Context, domain string, name string) (*User, error) {
 
-	span, ctx := trace.New(ctx, "New Load User Operation")
+	span, ctx := trace.New(ctx, "fakedb.loadUser")
 	defer span.Close()
 
 	user := User{Domain: domain, Name: name}
@@ -123,7 +123,7 @@ func (db *FakeDB) LoadUser(ctx context.Context, domain string, name string) (*Us
 
 func (db *FakeDB) Load(ctx context.Context, dir string, filename string) (*[]byte, error) {
 
-	span, ctx := trace.New(ctx, "New Load Operation")
+	span, ctx := trace.New(ctx, "fakedb.loadObject")
 	defer span.Close()
 
 	path := fmt.Sprint(db.dbRoot, dir, filename)
