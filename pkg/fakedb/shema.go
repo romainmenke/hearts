@@ -3,6 +3,7 @@ package fakedb
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 )
 
 type FakeSheme interface {
@@ -58,8 +59,13 @@ type User struct {
 	Badges []Badge
 }
 
-func (u *User) FullName() string {
-	return fmt.Sprintf("%s/%s", u.Domain, u.Name)
+func (u *User) CalculateLevel() {
+
+	f := float64(u.Exp)
+	f = f * 0.2345
+	s := math.Sqrt(f)
+	u.Level = int(s)
+
 }
 
 func (u *User) Path() string {
@@ -85,5 +91,3 @@ type Badge struct {
 	Name     string
 	Progress int
 }
-
-//Int(sqrt(Double(xp) * 0.2345))

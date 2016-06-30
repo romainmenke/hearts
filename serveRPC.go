@@ -134,10 +134,47 @@ func (s *server) loadUser(ctx context.Context, message *wercker.WerckerMessage) 
 	return user
 }
 
+func (s *server) saveHeart(ctx context.Context, message *wercker.WerckerMessage, heart *fakedb.Heart) error {
+
+	span, ctx := trace.New(ctx, "server.grpc.saveHeart")
+	defer span.Close()
+
+	err := db.SaveObject(ctx, heart)
+	if err != nil {
+		return span.Error(err)
+	}
+	return nil
+
+}
+
+func (s *server) saveUser(ctx context.Context, message *wercker.WerckerMessage, user *fakedb.User) error {
+
+	span, ctx := trace.New(ctx, "server.grpc.saveUser")
+	defer span.Close()
+
+	err := db.SaveObject(ctx, user)
+	if err != nil {
+		return span.Error(err)
+	}
+	return nil
+
+}
+
 func applyChanges(ctx context.Context, message *wercker.WerckerMessage, heart *fakedb.Heart, user *fakedb.User) {
 
 	span, ctx := trace.New(ctx, "server.grpc.applyChanges")
 	defer span.Close()
+
+	kill := false
+	save := false
+
+	if message.Result.Result == true && heart.LastBuild == false && heart.Count == 1 {
+		save = true
+	}
+
+	if message.Result.Result == false && heart.Count == 1 {
+		kill = true
+	}
 
 	// HEART
 	if message.Result.Result == true && heart.LastBuild == false && heart.Count != 0 {
@@ -170,30 +207,7 @@ func applyChanges(ctx context.Context, message *wercker.WerckerMessage, heart *f
 		user.Deaths++
 	}
 
-}
-
-func (s *server) saveHeart(ctx context.Context, message *wercker.WerckerMessage, heart *fakedb.Heart) error {
-
-	span, ctx := trace.New(ctx, "server.grpc.saveHeart")
-	defer span.Close()
-
-	err := db.SaveObject(ctx, heart)
-	if err != nil {
-		return span.Error(err)
-	}
-	return nil
-
-}
-
-func (s *server) saveUser(ctx context.Context, message *wercker.WerckerMessage, user *fakedb.User) error {
-
-	span, ctx := trace.New(ctx, "server.grpc.saveUser")
-	defer span.Close()
-
-	err := db.SaveObject(ctx, user)
-	if err != nil {
-		return span.Error(err)
-	}
-	return nil
+	user.CalculateLevel()
+	updateBadges(user, kill, save)
 
 }
