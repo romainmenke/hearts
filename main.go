@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 
 	"limbo.services/trace"
 	"limbo.services/trace/dev"
@@ -297,10 +298,15 @@ func GetHeartSVG(w http.ResponseWriter, r *http.Request) {
 
 func setResponseHeaderSVG(w http.ResponseWriter) {
 
+	cacheSince := time.Now().Format(http.TimeFormat)
+	cacheUntil := time.Now().AddDate(60, 0, 0).Format(http.TimeFormat)
+
 	w.Header().Add("Content-Type", "image/svg+xml")
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Access-Control-Expose-Headers", "Content-Type, Cache-Control, Expires, Etag, Last-Modified")
 	w.Header().Add("Cache-Control", "no-cache")
 	w.Header().Add("Pragma", "no-cache")
+	w.Header().Set("Last-Modified", cacheSince)
+	w.Header().Set("Expires", cacheUntil)
 
 }
