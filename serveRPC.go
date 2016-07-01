@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/pborman/uuid"
 	"github.com/romainmenke/hearts/pkg/fakedb"
 	"github.com/romainmenke/universal-notifier/pkg/wercker"
 	"golang.org/x/net/context"
@@ -99,6 +100,7 @@ func (s *server) loadHeart(ctx context.Context, message *wercker.WerckerMessage)
 
 		pass := message.Result.Result
 		newHeart := &fakedb.Heart{
+			ID:        uuid.New(),
 			Count:     3,
 			LastBuild: pass,
 			Domain:    message.Git.Domain,
@@ -121,6 +123,7 @@ func (s *server) loadUser(ctx context.Context, message *wercker.WerckerMessage) 
 		span.Error(err)
 
 		newUser := &fakedb.User{
+			ID:     uuid.New(),
 			Domain: message.Git.Domain,
 			Name:   message.Build.User,
 			Level:  0,
@@ -168,7 +171,7 @@ func applyChanges(ctx context.Context, message *wercker.WerckerMessage, heart *f
 	kill := false
 	save := false
 
-	if message.Result.Result == true && heart.LastBuild == false && heart.Count == 1 {
+	if message.Result.Result == true && heart.LastBuild == false && heart.Count == 1 && heart.LastBuilderID != user.ID {
 		save = true
 	}
 
@@ -192,7 +195,7 @@ func applyChanges(ctx context.Context, message *wercker.WerckerMessage, heart *f
 	}
 
 	heart.LastBuild = message.Result.Result
-	heart.LastBuilder = user
+	heart.LastBuilderID = user.ID
 
 	// user
 

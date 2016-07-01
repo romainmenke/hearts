@@ -13,12 +13,13 @@ type FakeSheme interface {
 }
 
 type Heart struct {
-	Count       int
-	LastBuild   bool
-	LastBuilder *User
-	Owner       string
-	Domain      string
-	Repo        string
+	ID            string
+	Count         int
+	LastBuild     bool
+	LastBuilderID string
+	Owner         string
+	Domain        string
+	Repo          string
 }
 
 func (h *Heart) Path() string {
@@ -50,13 +51,14 @@ func (h *Heart) SVG() string {
 }
 
 type User struct {
+	ID     string
 	Domain string
 	Name   string
 	Level  int
 	Exp    int
 	Streak int
 	Deaths int
-	Badges []Badge
+	Badges []*Badge
 }
 
 func (u *User) CalculateLevel() {
