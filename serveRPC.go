@@ -38,7 +38,7 @@ type grpcServer struct{}
 
 func (s *grpcServer) Notify(ctx context.Context, in *wercker.WerckerMessage) (*wercker.WerckerResponse, error) {
 
-	span, _ := trace.New(ctx, "server.grpc.notify")
+	span, ctx := trace.New(ctx, "server.grpc.notify")
 	defer span.Close()
 
 	if in == nil || in.Git == nil || in.Build == nil {
