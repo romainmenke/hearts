@@ -44,10 +44,10 @@ func GetUserJSON(w http.ResponseWriter, r *http.Request) {
 
 	user, err := db.LoadUser(ctx, domain, name)
 	if err != nil || user == nil {
-		resp := make(map[string]string)
-		resp["message"] = "unknown user"
-		json.NewEncoder(w).Encode(resp)
+		http.Error(w, err.Error(), http.StatusNotFound)
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(*user)
 }
 
@@ -71,10 +71,10 @@ func GetHeartJSON(w http.ResponseWriter, r *http.Request) {
 
 	heart, err := db.LoadHeart(ctx, domain, user, repo)
 	if err != nil || heart == nil {
-		resp := make(map[string]string)
-		resp["message"] = "unknown repository"
-		json.NewEncoder(w).Encode(resp)
+		http.Error(w, err.Error(), http.StatusNotFound)
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(*heart)
 }
 
