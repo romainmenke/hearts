@@ -168,6 +168,14 @@ func applyChanges(ctx context.Context, message *wercker.WerckerMessage, heart *f
 	span, ctx := trace.New(ctx, "server.grpc.applyChanges")
 	defer span.Close()
 
+	if heart.ID == "" {
+		heart.ID = uuid.New()
+	}
+
+	if user.ID == "" {
+		user.ID = uuid.New()
+	}
+
 	kill := false
 	save := false
 
