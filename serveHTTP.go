@@ -25,10 +25,9 @@ func serveHTTP() {
 	travis.HandleTravisWebHook(router, "/travis/", HandleTravisPayload)
 
 	fmt.Println("server.http.ready")
+	fmt.Println("server.tcp.listening on port : 8080")
 
 	http.ListenAndServe(":8080", router)
-
-	fmt.Println("server.tcp.listening on port : 8080")
 
 }
 
