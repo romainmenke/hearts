@@ -23,8 +23,12 @@
 			"Rev": "c55201b036063326c5b1b89ccfe45a184973d073"
 		},
 		{
+			"ImportPath": "github.com/romainmenke/travis",
+			"Rev": "345d79c4c5858f0142ad61a6ccf6e1b43a24b140"
+		},
+		{
 			"ImportPath": "github.com/romainmenke/universal-notifier/pkg/wercker",
-			"Rev": "8915eb5107dd06cab57f6974029f24daca5fda37"
+			"Rev": "5cde08d2a4546fc16628a0d297286ab41d6e06bb"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
@@ -48,39 +52,39 @@
 		},
 		{
 			"ImportPath": "google.golang.org/grpc",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/codes",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/credentials",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/grpclog",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/internal",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/metadata",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/naming",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/peer",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc/transport",
-			"Rev": "e78224b060cf3215247b7be455f80ea22e469b66"
+			"Rev": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18"
 		},
 		{
 			"ImportPath": "limbo.services/trace",

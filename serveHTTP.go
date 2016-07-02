@@ -9,6 +9,7 @@ import (
 	"limbo.services/trace"
 
 	"github.com/gorilla/mux"
+	"github.com/romainmenke/travis"
 	"golang.org/x/net/context"
 )
 
@@ -21,10 +22,13 @@ func serveHTTP() {
 	router.HandleFunc("/heart/{domain}/{user}/{repo}.svg", GetHeartSVG)
 	router.HandleFunc("/user/{domain}/{user}.json", GetUserJSON)
 	router.HandleFunc("/user/{domain}/{user}.svg", GetUserSVG)
+	travis.HandleTravisWebHook(router, "/travis/", HandleTravisPayload)
 
 	fmt.Println("server.http.ready")
 
 	http.ListenAndServe(":8080", router)
+
+	fmt.Println("server.tcp.listening on port : 8080")
 
 }
 
@@ -115,4 +119,23 @@ func setResponseHeaderSVG(w http.ResponseWriter) {
 	w.Header().Set("Last-Modified", cacheSince)
 	w.Header().Set("Expires", cacheUntil)
 
+}
+
+func HandleTravisPayload(payload *travis.PayloadObject) {
+
+	ctx := context.Background()
+
+	span, ctx := trace.New(ctx, "server.http.webhook")
+	defer span.Close()
+
+	if payload.Branch != "master" {
+		span.Log("not on the main branch")
+	}
+
+	message := newFromTravis(payload)
+
+	err := update(ctx, db, message)
+	if err != nil {
+		span.Error(err)
+	}
 }
