@@ -47,12 +47,16 @@ func GetUserJSON(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Vary", "Accept-Encoding")
+	w.Header().Set("Cache-Control", "public, max-age=3600")
 	json.NewEncoder(w).Encode(*user)
+	return
 }
 
 func GetUserSVG(w http.ResponseWriter, r *http.Request) {
 
+	http.Error(w, "not implemented", http.StatusNotImplemented)
 	return
 
 }
@@ -72,9 +76,12 @@ func GetHeartJSON(w http.ResponseWriter, r *http.Request) {
 	heart, err := db.LoadHeart(ctx, domain, user, repo)
 	if err != nil || heart == nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Vary", "Accept-Encoding")
+	w.Header().Set("Cache-Control", "public, max-age=3600")
 	json.NewEncoder(w).Encode(*heart)
 }
 
