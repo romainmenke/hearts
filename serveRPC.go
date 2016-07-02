@@ -20,7 +20,7 @@ func serveRCP() {
 
 	fmt.Println("server.grpc.loadingDB")
 
-	db = fakedb.New("/go/src/app/db/", "/go/src/app/db/")
+	db = fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/")
 	db.LoadGit(context.Background())
 
 	lis, err := net.Listen("tcp", port)
