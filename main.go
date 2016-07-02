@@ -20,14 +20,13 @@ var (
 
 func main() {
 
-	fmt.Println("server.starting")
+	trace.DefaultHandler = dev.NewHandler(nil)
 
+	fmt.Println("server.starting")
 	fmt.Println("server.loadingDB")
 
 	db = fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/")
 	db.LoadGit(context.Background())
-
-	trace.DefaultHandler = dev.NewHandler(nil)
 
 	go serveHTTP()
 
