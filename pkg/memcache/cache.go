@@ -30,7 +30,7 @@ func New(db *fakedb.FakeDB) *MemCache {
 
 func RunCacheWorker(cache *MemCache) {
 
-	span, ctx := trace.New(context.Background(), "cache.CacheWorker")
+	span, _ := trace.New(context.Background(), "cache.CacheWorker")
 	defer span.Close()
 
 	ticker := time.NewTicker(2 * time.Minute)
@@ -39,7 +39,7 @@ func RunCacheWorker(cache *MemCache) {
 		for {
 			select {
 			case <-ticker.C:
-				cache.clear(ctx)
+				cache.clear(context.Background())
 			case <-quit:
 				ticker.Stop()
 				return
@@ -51,7 +51,7 @@ func RunCacheWorker(cache *MemCache) {
 
 func RunPersistWorker(cache *MemCache) {
 
-	span, ctx := trace.New(context.Background(), "cache.PersistWorker")
+	span, _ := trace.New(context.Background(), "cache.PersistWorker")
 	defer span.Close()
 
 	ticker := time.NewTicker(10 * time.Minute)
@@ -60,7 +60,7 @@ func RunPersistWorker(cache *MemCache) {
 		for {
 			select {
 			case <-ticker.C:
-				cache.DB.Persist(ctx)
+				cache.DB.Persist(context.Background())
 			case <-quit:
 				ticker.Stop()
 				return
