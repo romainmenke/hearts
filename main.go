@@ -29,7 +29,7 @@ func main() {
 	db := fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/")
 	db.LoadGit(context.Background())
 
-	cache := memcache.New(db)
+	cache = memcache.New(db)
 
 	memcache.RunCacheWorker(cache)
 	memcache.RunPersistWorker(cache)

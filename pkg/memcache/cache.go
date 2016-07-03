@@ -1,8 +1,9 @@
 package memcache
 
 import (
-	"fmt"
 	"time"
+
+	"limbo.services/trace"
 
 	"golang.org/x/net/context"
 
@@ -29,13 +30,8 @@ func New(db *fakedb.FakeDB) *MemCache {
 
 func RunCacheWorker(cache *MemCache) {
 
-	if cache.UserCache == nil {
-		fmt.Println("nil user cache")
-	}
-
-	if cache.UserCache.data == nil {
-		fmt.Println("nil user cache data")
-	}
+	span, ctx := trace.New(context.Background(), "cache.CacheWorker")
+	defer span.Close()
 
 	ticker := time.NewTicker(2 * time.Minute)
 	quit := make(chan struct{})
@@ -43,7 +39,7 @@ func RunCacheWorker(cache *MemCache) {
 		for {
 			select {
 			case <-ticker.C:
-				cache.clear()
+				cache.clear(ctx)
 			case <-quit:
 				ticker.Stop()
 				return
@@ -55,13 +51,16 @@ func RunCacheWorker(cache *MemCache) {
 
 func RunPersistWorker(cache *MemCache) {
 
+	span, ctx := trace.New(context.Background(), "cache.PersistWorker")
+	defer span.Close()
+
 	ticker := time.NewTicker(10 * time.Minute)
 	quit := make(chan struct{})
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				cache.DB.Persist(context.Background())
+				cache.DB.Persist(ctx)
 			case <-quit:
 				ticker.Stop()
 				return
@@ -71,7 +70,10 @@ func RunPersistWorker(cache *MemCache) {
 
 }
 
-func (c *MemCache) clear() {
+func (c *MemCache) clear(ctx context.Context) {
+
+	span, ctx := trace.New(ctx, "cache.clear")
+	defer span.Close()
 
 	c.UserCache.data = make(map[string]*CachedUser)
 	c.HeartCache.data = make(map[string]*CachedHeart)

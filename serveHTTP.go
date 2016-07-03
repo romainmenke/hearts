@@ -25,7 +25,7 @@ func serveHTTP() {
 	travis.HandleTravisWebHook(router, "/travis/", HandleTravisPayload)
 
 	fmt.Println("server.http.ready")
-	fmt.Println("server.tcp.listening on port : 8080")
+	fmt.Println("server.tcp.listening on port :8080")
 
 	http.ListenAndServe(":8080", router)
 
@@ -44,7 +44,7 @@ func GetUserJSON(w http.ResponseWriter, r *http.Request) {
 
 	userCache, err := cache.LoadUser(ctx, domain, name)
 	if err != nil || userCache.User == nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, "Not Found", http.StatusNotFound)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -75,7 +75,7 @@ func GetHeartJSON(w http.ResponseWriter, r *http.Request) {
 
 	heartCache, err := cache.LoadHeart(ctx, domain, user, repo)
 	if err != nil || heartCache.Heart == nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
