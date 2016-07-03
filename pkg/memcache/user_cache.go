@@ -50,7 +50,7 @@ func (c *MemCache) SaveUser(ctx context.Context, user *fakedb.User) error {
 	defer span.Close()
 
 	cached, exists := c.UserCache.data[user.FullPath()]
-	if exists && cached.User == user {
+	if exists && cached.Etag == user.Hash() {
 		return nil
 	}
 

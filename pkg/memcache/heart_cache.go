@@ -52,7 +52,7 @@ func (c *MemCache) SaveHeart(ctx context.Context, heart *fakedb.Heart) error {
 	defer span.Close()
 
 	cached, exists := c.HeartCache.data[heart.FullPath()]
-	if exists && cached.Heart == heart {
+	if exists && cached.Etag == heart.Hash() {
 		return nil
 	}
 
