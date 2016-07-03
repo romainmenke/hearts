@@ -1,6 +1,7 @@
 package memcache
 
 import (
+	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -17,10 +18,24 @@ type MemCache struct {
 func New(db *fakedb.FakeDB) *MemCache {
 	return &MemCache{
 		DB: db,
+		UserCache: &UserCache{
+			data: make(map[string]*CachedUser),
+		},
+		HeartCache: &HeartCache{
+			data: make(map[string]*CachedHeart),
+		},
 	}
 }
 
 func RunCacheWorker(cache *MemCache) {
+
+	if cache.UserCache == nil {
+		fmt.Println("nil user cache")
+	}
+
+	if cache.UserCache.data == nil {
+		fmt.Println("nil user cache data")
+	}
 
 	ticker := time.NewTicker(2 * time.Minute)
 	quit := make(chan struct{})

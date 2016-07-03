@@ -14,7 +14,7 @@ import (
 
 func serveRCP() {
 
-	fmt.Println("server.tcp.listening on port : " + port)
+	fmt.Println("server.tcp.listening on port " + port)
 
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
