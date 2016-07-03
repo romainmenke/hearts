@@ -17,11 +17,11 @@ func (db *FakeDB) Persist(ctx context.Context) error {
 
 	err := add()
 	if err != nil {
-		return span.Error(err)
+		return nil
 	}
 	err = commit()
 	if err != nil {
-		return span.Error(err)
+		return nil
 	}
 	err = push()
 	if err != nil {
@@ -38,7 +38,7 @@ func (db *FakeDB) LoadGit(ctx context.Context) error {
 
 	err := pull()
 	if err != nil {
-		return span.Error(err)
+		return nil
 	}
 
 	return nil
