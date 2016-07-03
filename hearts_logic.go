@@ -3,31 +3,27 @@ package main
 import (
 	"github.com/pborman/uuid"
 	"github.com/romainmenke/hearts/pkg/fakedb"
+	"github.com/romainmenke/hearts/pkg/memcache"
 	"golang.org/x/net/context"
 	"limbo.services/trace"
 )
 
-func update(ctx context.Context, db *fakedb.FakeDB, message *incomingMessage) error {
+func update(ctx context.Context, cache *memcache.MemCache, message *incomingMessage) error {
 
 	span, ctx := trace.New(ctx, "server.hearts.update")
 	defer span.Close()
 
-	heart := loadHeart(ctx, db, message)
-	user := loadUser(ctx, db, message)
+	heart := loadHeart(ctx, cache, message)
+	user := loadUser(ctx, cache, message)
 
 	applyChanges(ctx, message, heart, user)
 
-	err := saveHeart(ctx, db, heart)
+	err := saveHeart(ctx, cache, heart)
 	if err != nil {
 		return span.Error(err)
 	}
 
-	err = saveUser(ctx, db, user)
-	if err != nil {
-		return span.Error(err)
-	}
-
-	err = db.Persist(ctx)
+	err = saveUser(ctx, cache, user)
 	if err != nil {
 		return span.Error(err)
 	}
@@ -35,13 +31,13 @@ func update(ctx context.Context, db *fakedb.FakeDB, message *incomingMessage) er
 	return nil
 }
 
-func loadHeart(ctx context.Context, db *fakedb.FakeDB, message *incomingMessage) *fakedb.Heart {
+func loadHeart(ctx context.Context, cache *memcache.MemCache, message *incomingMessage) *fakedb.Heart {
 
 	span, ctx := trace.New(ctx, "server.hearts.loadHeart")
 	defer span.Close()
 
-	heart, err := db.LoadHeart(ctx, message.repo.domain, message.repo.owner, message.repo.name)
-	if err != nil || heart == nil {
+	heartCache, err := cache.LoadHeart(ctx, message.repo.domain, message.repo.owner, message.repo.name)
+	if err != nil {
 		span.Error(err)
 
 		pass := message.result.pass
@@ -56,16 +52,16 @@ func loadHeart(ctx context.Context, db *fakedb.FakeDB, message *incomingMessage)
 		return newHeart
 	}
 
-	return heart
+	return heartCache.Heart
 }
 
-func loadUser(ctx context.Context, db *fakedb.FakeDB, message *incomingMessage) *fakedb.User {
+func loadUser(ctx context.Context, cache *memcache.MemCache, message *incomingMessage) *fakedb.User {
 
 	span, ctx := trace.New(ctx, "server.hearts.loadUser")
 	defer span.Close()
 
-	user, err := db.LoadUser(ctx, message.repo.domain, message.user.name)
-	if err != nil || user == nil {
+	userCache, err := cache.LoadUser(ctx, message.repo.domain, message.user.name)
+	if err != nil {
 		span.Error(err)
 
 		newUser := &fakedb.User{
@@ -80,15 +76,15 @@ func loadUser(ctx context.Context, db *fakedb.FakeDB, message *incomingMessage) 
 		return newUser
 	}
 
-	return user
+	return userCache.User
 }
 
-func saveHeart(ctx context.Context, db *fakedb.FakeDB, heart *fakedb.Heart) error {
+func saveHeart(ctx context.Context, cache *memcache.MemCache, heart *fakedb.Heart) error {
 
 	span, ctx := trace.New(ctx, "server.hearts.saveHeart")
 	defer span.Close()
 
-	err := db.SaveObject(ctx, heart)
+	err := cache.SaveHeart(ctx, heart)
 	if err != nil {
 		return span.Error(err)
 	}
@@ -96,12 +92,12 @@ func saveHeart(ctx context.Context, db *fakedb.FakeDB, heart *fakedb.Heart) erro
 
 }
 
-func saveUser(ctx context.Context, db *fakedb.FakeDB, user *fakedb.User) error {
+func saveUser(ctx context.Context, cache *memcache.MemCache, user *fakedb.User) error {
 
 	span, ctx := trace.New(ctx, "server.hearts.saveUser")
 	defer span.Close()
 
-	err := db.SaveObject(ctx, user)
+	err := cache.SaveUser(ctx, user)
 	if err != nil {
 		return span.Error(err)
 	}

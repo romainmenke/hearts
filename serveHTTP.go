@@ -42,15 +42,15 @@ func GetUserJSON(w http.ResponseWriter, r *http.Request) {
 	domain := vars["domain"]
 	name := vars["user"]
 
-	user, err := db.LoadUser(ctx, domain, name)
-	if err != nil || user == nil {
+	userCache, err := cache.LoadUser(ctx, domain, name)
+	if err != nil || userCache.User == nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Vary", "Accept-Encoding")
 	w.Header().Set("Cache-Control", "public, max-age=3600")
-	json.NewEncoder(w).Encode(*user)
+	json.NewEncoder(w).Encode(*userCache.User)
 	return
 }
 
@@ -73,8 +73,8 @@ func GetHeartJSON(w http.ResponseWriter, r *http.Request) {
 	user := vars["user"]
 	repo := vars["repo"]
 
-	heart, err := db.LoadHeart(ctx, domain, user, repo)
-	if err != nil || heart == nil {
+	heartCache, err := cache.LoadHeart(ctx, domain, user, repo)
+	if err != nil || heartCache.Heart == nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -82,7 +82,7 @@ func GetHeartJSON(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("Vary", "Accept-Encoding")
 	w.Header().Set("Cache-Control", "public, max-age=3600")
-	json.NewEncoder(w).Encode(*heart)
+	json.NewEncoder(w).Encode(*heartCache.Heart)
 }
 
 func GetHeartSVG(w http.ResponseWriter, r *http.Request) {
@@ -99,12 +99,12 @@ func GetHeartSVG(w http.ResponseWriter, r *http.Request) {
 	user := vars["user"]
 	repo := vars["repo"]
 
-	heart, err := db.LoadHeart(ctx, domain, user, repo)
+	heartCache, err := cache.LoadHeart(ctx, domain, user, repo)
 	if err != nil {
 		return
 	}
 
-	svgString := heart.SVG()
+	svgString := heartCache.Heart.SVG()
 
 	fmt.Fprint(w, svgString)
 
@@ -140,7 +140,7 @@ func HandleTravisPayload(payload *travis.PayloadObject) {
 
 	message := newFromTravis(payload)
 
-	err := update(ctx, db, message)
+	err := update(ctx, cache, message)
 	if err != nil {
 		span.Error(err)
 	}

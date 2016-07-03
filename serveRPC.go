@@ -53,7 +53,7 @@ func (s *grpcServer) Notify(ctx context.Context, in *wercker.WerckerMessage) (*w
 
 	message := newFromWercker(in)
 
-	err := update(ctx, db, message)
+	err := update(ctx, cache, message)
 	if err != nil {
 		span.Error(err)
 		return &wercker.WerckerResponse{Success: false}, err

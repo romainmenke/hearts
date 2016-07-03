@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/romainmenke/hearts/pkg/fakedb"
+	"github.com/romainmenke/hearts/pkg/memcache"
 	"limbo.services/trace"
 	"limbo.services/trace/dev"
 )
@@ -15,7 +16,7 @@ const (
 )
 
 var (
-	db *fakedb.FakeDB
+	cache *memcache.MemCache
 )
 
 func main() {
@@ -25,8 +26,13 @@ func main() {
 	fmt.Println("server.starting")
 	fmt.Println("server.loadingDB")
 
-	db = fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/")
+	db := fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/")
 	db.LoadGit(context.Background())
+
+	cache := memcache.New(db)
+
+	memcache.RunCacheWorker(cache)
+	memcache.RunPersistWorker(cache)
 
 	go serveHTTP()
 
