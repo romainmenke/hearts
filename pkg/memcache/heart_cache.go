@@ -25,6 +25,19 @@ func (c *MemCache) LoadHeart(ctx context.Context, domain string, owner string, r
 		Owner:  owner,
 		Repo:   repo,
 	}
+
+	if c.HeartCache == nil {
+		span.Log("nil heart cache")
+	} else {
+		span.Log("heart cache exists")
+	}
+
+	if c.HeartCache.data == nil {
+		span.Log("nil heart cache data")
+	} else {
+		span.Log("heart cache data exists")
+	}
+
 	cached, exists := c.HeartCache.data[heart.FullPath()]
 	if exists {
 		return cached, nil
