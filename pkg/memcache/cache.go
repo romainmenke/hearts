@@ -30,7 +30,7 @@ func New(db *fakedb.FakeDB) *MemCache {
 
 func RunCacheWorker(cache *MemCache) {
 
-	span, _ := trace.New(context.Background(), "cache.CacheWorker")
+	span, _ := trace.New(context.Background(), "server.cache.CacheWorker")
 	defer span.Close()
 
 	ticker := time.NewTicker(2 * time.Minute)
@@ -39,7 +39,7 @@ func RunCacheWorker(cache *MemCache) {
 		for {
 			select {
 			case <-ticker.C:
-				cache.clear(context.Background())
+				cache.clean(context.Background())
 			case <-quit:
 				ticker.Stop()
 				return
@@ -49,33 +49,25 @@ func RunCacheWorker(cache *MemCache) {
 
 }
 
-func RunPersistWorker(cache *MemCache) {
+func (c *MemCache) clean(ctx context.Context) {
 
-	span, _ := trace.New(context.Background(), "cache.PersistWorker")
+	span, ctx := trace.New(ctx, "server.cache.clean")
 	defer span.Close()
 
-	ticker := time.NewTicker(10 * time.Minute)
-	quit := make(chan struct{})
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				cache.DB.Persist(context.Background())
-			case <-quit:
-				ticker.Stop()
-				return
-			}
+	now := time.Now()
+
+	for key, value := range c.HeartCache.data {
+		diff := now.Sub(value.Time)
+		if diff > 5*time.Minute {
+			delete(c.HeartCache.data, key)
 		}
-	}()
+	}
 
-}
-
-func (c *MemCache) clear(ctx context.Context) {
-
-	span, ctx := trace.New(ctx, "cache.clear")
-	defer span.Close()
-
-	c.UserCache.data = make(map[string]*CachedUser)
-	c.HeartCache.data = make(map[string]*CachedHeart)
+	for key, value := range c.UserCache.data {
+		diff := now.Sub(value.Time)
+		if diff > 5*time.Minute {
+			delete(c.UserCache.data, key)
+		}
+	}
 
 }

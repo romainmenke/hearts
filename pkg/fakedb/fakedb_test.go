@@ -15,7 +15,7 @@ func TestWriteHeart(t *testing.T) {
 	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
-	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
+	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/", "heartsbot", "nopass")
 
 	heart := Heart{
 		Count:     2,
@@ -37,7 +37,7 @@ func TestWriteSVG(t *testing.T) {
 	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
-	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
+	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/", "heartsbot", "nopass")
 
 	heart := Heart{
 		Count:     2,
@@ -59,7 +59,7 @@ func TestReadHeart(t *testing.T) {
 	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
-	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
+	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/", "heartsbot", "nopass")
 
 	loadHeart, err := db.LoadHeart(ctx, "github.com", "romainmenke", "hearts")
 	if err != nil {
@@ -86,7 +86,7 @@ func TestReadNonHeart(t *testing.T) {
 	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
-	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
+	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/", "heartsbot", "nopass")
 
 	loadHeart, err := db.LoadHeart(ctx, "github.com", "blah", "hearts")
 
@@ -104,7 +104,7 @@ func TestWriteUser(t *testing.T) {
 	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
-	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
+	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/", "heartsbot", "nopass")
 
 	user := User{
 		Domain: "github.com",
@@ -127,7 +127,7 @@ func TestReadUser(t *testing.T) {
 	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
-	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
+	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/", "heartsbot", "nopass")
 
 	loadUser, err := db.LoadUser(ctx, "github.com", "romainmenke")
 	if err != nil {
@@ -144,7 +144,7 @@ func TestReadUser(t *testing.T) {
 		Deaths: 999,
 	}
 
-	if *loadUser != compareUser {
+	if loadUser.Hash() != compareUser.Hash() {
 		fmt.Print(*loadUser)
 		t.Fail()
 	}
@@ -155,7 +155,7 @@ func TestReadNonUser(t *testing.T) {
 	trace.DefaultHandler = dev.NewHandler(nil)
 	ctx := context.Background()
 
-	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/")
+	db := New("/Users/romainmenke/Go/src/github.com/romainmenke/hearts/pkg/fakedb/testdb/", "/Users/romainmenke/Go/src/github.com/romainmenke/hearts/", "heartsbot", "nopass")
 
 	loadUser, err := db.LoadUser(ctx, "github.com", "blah")
 

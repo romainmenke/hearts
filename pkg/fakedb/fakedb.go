@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"golang.org/x/net/context"
 	"limbo.services/trace"
@@ -20,6 +21,27 @@ type FakeDB struct {
 func New(dbRoot string, gitRoot string, gitUser string, gitPass string) *FakeDB {
 	db := FakeDB{dbRoot: dbRoot, gitRoot: gitRoot, gitUser: gitUser, gitPass: gitPass}
 	return &db
+}
+
+func RunPersistWorker(db *FakeDB) {
+
+	span, _ := trace.New(context.Background(), "server.fakedb.PersistWorker")
+	defer span.Close()
+
+	ticker := time.NewTicker(10 * time.Minute)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				db.Persist(context.Background())
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
 }
 
 func (db *FakeDB) SaveObject(ctx context.Context, object FakeSheme) error {

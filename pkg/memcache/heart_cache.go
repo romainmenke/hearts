@@ -1,6 +1,8 @@
 package memcache
 
 import (
+	"time"
+
 	"github.com/romainmenke/hearts/pkg/fakedb"
 	"golang.org/x/net/context"
 	"limbo.services/trace"
@@ -13,6 +15,7 @@ type HeartCache struct {
 type CachedHeart struct {
 	Heart *fakedb.Heart
 	Etag  int
+	Time  time.Time
 }
 
 func (c *MemCache) LoadHeart(ctx context.Context, domain string, owner string, repo string) (*CachedHeart, error) {
@@ -28,6 +31,7 @@ func (c *MemCache) LoadHeart(ctx context.Context, domain string, owner string, r
 
 	cached, exists := c.HeartCache.data[heart.FullPath()]
 	if exists {
+		cached.Time = time.Now()
 		return cached, nil
 	}
 
@@ -39,6 +43,7 @@ func (c *MemCache) LoadHeart(ctx context.Context, domain string, owner string, r
 	cached = &CachedHeart{
 		Heart: heart,
 		Etag:  heart.Hash(),
+		Time:  time.Now(),
 	}
 
 	c.HeartCache.data[heart.FullPath()] = cached
@@ -64,6 +69,7 @@ func (c *MemCache) SaveHeart(ctx context.Context, heart *fakedb.Heart) error {
 	c.HeartCache.data[heart.FullPath()] = &CachedHeart{
 		Heart: heart,
 		Etag:  heart.Hash(),
+		Time:  time.Now(),
 	}
 
 	return nil

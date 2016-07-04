@@ -1,6 +1,8 @@
 package memcache
 
 import (
+	"time"
+
 	"github.com/romainmenke/hearts/pkg/fakedb"
 	"golang.org/x/net/context"
 	"limbo.services/trace"
@@ -13,6 +15,7 @@ type UserCache struct {
 type CachedUser struct {
 	User *fakedb.User
 	Etag int
+	Time time.Time
 }
 
 func (c *MemCache) LoadUser(ctx context.Context, domain string, name string) (*CachedUser, error) {
@@ -26,6 +29,7 @@ func (c *MemCache) LoadUser(ctx context.Context, domain string, name string) (*C
 	}
 	cached, exists := c.UserCache.data[user.FullPath()]
 	if exists {
+		cached.Time = time.Now()
 		return cached, nil
 	}
 
@@ -37,6 +41,7 @@ func (c *MemCache) LoadUser(ctx context.Context, domain string, name string) (*C
 	cached = &CachedUser{
 		User: user,
 		Etag: user.Hash(),
+		Time: time.Now(),
 	}
 
 	c.UserCache.data[user.FullPath()] = cached
@@ -62,6 +67,7 @@ func (c *MemCache) SaveUser(ctx context.Context, user *fakedb.User) error {
 	c.UserCache.data[user.FullPath()] = &CachedUser{
 		User: user,
 		Etag: user.Hash(),
+		Time: time.Now(),
 	}
 
 	return nil

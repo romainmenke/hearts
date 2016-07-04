@@ -34,11 +34,10 @@ func main() {
 	}
 	db := fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/", gitUser, gitPass)
 	db.LoadGit(context.Background())
+	fakedb.RunPersistWorker(db)
 
 	cache = memcache.New(db)
-
 	memcache.RunCacheWorker(cache)
-	memcache.RunPersistWorker(cache)
 
 	go serveHTTP()
 
