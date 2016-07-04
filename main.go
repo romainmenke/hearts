@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"golang.org/x/net/context"
 
@@ -26,7 +27,12 @@ func main() {
 	fmt.Println("server.starting")
 	fmt.Println("server.loadingDB")
 
-	db := fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/")
+	gitUser := os.Getenv("GIT_USER")
+	gitPass := os.Getenv("GIT_PASS")
+	if gitUser == "" || gitPass == "" {
+		fmt.Println("no git credentials")
+	}
+	db := fakedb.New("/go/src/github.com/romainmenke/hearts/db/", "/go/src/github.com/romainmenke/hearts/db/", gitUser, gitPass)
 	db.LoadGit(context.Background())
 
 	cache = memcache.New(db)

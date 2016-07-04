@@ -13,10 +13,12 @@ import (
 type FakeDB struct {
 	dbRoot  string
 	gitRoot string
+	gitUser string
+	gitPass string
 }
 
-func New(dbRoot string, gitRoot string) *FakeDB {
-	db := FakeDB{dbRoot: dbRoot, gitRoot: gitRoot}
+func New(dbRoot string, gitRoot string, gitUser string, gitPass string) *FakeDB {
+	db := FakeDB{dbRoot: dbRoot, gitRoot: gitRoot, gitUser: gitUser, gitPass: gitPass}
 	return &db
 }
 

@@ -3,7 +3,6 @@ package fakedb
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
 
 	"golang.org/x/net/context"
@@ -23,7 +22,7 @@ func (db *FakeDB) Persist(ctx context.Context) error {
 	if err != nil {
 		return nil
 	}
-	err = push()
+	err = push(db.gitUser, db.gitPass)
 	if err != nil {
 		return span.Error(err)
 	}
@@ -81,11 +80,9 @@ func commit() error {
 	return nil
 }
 
-func push() error {
+func push(user string, pass string) error {
 
-	user := os.Getenv("GIT_USER")
-	password := os.Getenv("GIT_PASS")
-	url := fmt.Sprintf("https://%s:%s@github.com/romainmenke/hearts.git", user, password)
+	url := fmt.Sprintf("https://%s:%s@github.com/romainmenke/hearts.git", user, pass)
 
 	cmd := exec.Command("git", "push", url)
 	var out bytes.Buffer
