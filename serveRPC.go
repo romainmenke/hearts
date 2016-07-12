@@ -46,10 +46,10 @@ func (s *grpcServer) Notify(ctx context.Context, in *wercker.WerckerMessage) (*w
 		return &wercker.WerckerResponse{Success: false}, err
 	}
 
-	if in.Git.Branch != "master" {
-		span.Log("not on the main branch")
-		return &wercker.WerckerResponse{Success: true}, nil
-	}
+	// if in.Git.Branch != "master" {
+	// 	span.Log("not on the main branch")
+	// 	return &wercker.WerckerResponse{Success: true}, nil
+	// }
 
 	message := newFromWercker(in)
 
